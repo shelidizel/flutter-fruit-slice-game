@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'model/touch_slice.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: 
+      home: HomePage()
     );
   }
 }
@@ -49,25 +51,28 @@ class _HomePageState extends State<HomePage> {
 
   TouchSlice? touchSlice;
 
-  List<Widget> getStackWidgets() {
+  
 
-    List<Widget> widgetsOnStack = [];
+  _setNewSlice(details){
+    touchSlice = TouchSlice(pointsList: <Offset>[details.localFocalPoint]);
+  }
 
-    widgetsOnStack.add(_getSlice);
-    widgetsOnStack.add(_getGestureDetector);
+  _addPointToSlice(details) {
+    if(touchSlice == null || touchSlice!.pointsList.isEmpty){
+      return;
+    }
+    if(touchSlice!.pointsList.length > 16) {
+      touchSlice!.pointsList.removeAt(0);
+    }
 
-    return widgetsOnStack;
+    touchSlice!.pointsList.add(details.localFocalPoint);
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
-  }
-
-  Widget _getSlice () {
+    Widget _getSlice () {
     if(touchSlice == null){
-      return SizedBox();
+      return const SizedBox();
     }
 
     return CustomPaint(
@@ -76,18 +81,17 @@ class _HomePageState extends State<HomePage> {
       )
     );
   }
-
   Widget _getGestureDetector () {
     return GestureDetector (
       onScaleStart : (details) {
-        setState(){
+        setState(() {
           _setNewSlice(details);
-        }
+        });
       },
       onScaleUpdate : (details) {
-        setState () {
+        setState(() {
           _addPointToSlice(details);
-        }
+        });
       },
       onScaleEnd : (details) {
         touchSlice = null;
@@ -95,14 +99,29 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  List<Widget> getStackWidgets() {
+
+    List<Widget> widgetsOnStack = [];
+
+    widgetsOnStack.add(_getSlice());
+    widgetsOnStack.add(_getGestureDetector());
+
+    return widgetsOnStack;
+  }
+    return Stack(
+      children: getStackWidgets(),
+    );
+  }
+
+   
+
+  
+
+  
+
 }
 
-class TouchSlice {
 
-  TouchSlice({ required this.pointsList });
-
-  List<Offset> pointsList = [];
-}
 
 class SlicePainter extends CustomPainter {
 
